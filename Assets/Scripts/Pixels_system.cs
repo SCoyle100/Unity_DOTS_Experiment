@@ -2,21 +2,25 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Mathematics;
-using Unity.Transforms;
 using Unity.Collections;
+using UnityEngine;
 
 public partial class Pixels_system : SystemBase
 {
-    private float animationSpeed = 20f;
-    private float time;
+    private float _animationSpeed = 20f; // Renamed to avoid ambiguity
+    private float _currentTime; // Renamed to avoid ambiguity
 
     protected override void OnUpdate()
     {
-        // Capture values into local variables to avoid capturing 'this'
-        float localTime = time += SystemAPI.Time.DeltaTime * animationSpeed;
-        float centerX = 250; // Assuming a width of 50
-        float centerY = 250; // Assuming a height of 40
+        float localAnimationSpeed = _animationSpeed;
+        float deltaTime = SystemAPI.Time.DeltaTime;
+        _currentTime += deltaTime * localAnimationSpeed;
+        float localCurrentTime = _currentTime;
+        float centerX = 250; // Assuming a width of 500
+        float centerY = 250; // Assuming a height of 500
         float maxRadius = math.sqrt(centerX * centerX + centerY * centerY);
+
+        Debug.Log("Updating Pixels_system: " + localCurrentTime);
 
         Entities
             .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
@@ -27,10 +31,24 @@ public partial class Pixels_system : SystemBase
 
                 if (distance < maxRadius)
                 {
-                    float angle = math.radians(localTime * (maxRadius / 2 - (distance % (maxRadius / 2))));
-                    float4 color = math.lerp(new float4(1, 0, 0, 1), new float4(0, 0, 1, 1), (distance % (maxRadius / 2)) / (maxRadius / 2));
-                    color = math.lerp(color, new float4(math.sin(distance % (maxRadius / 2) / (maxRadius / 2)), 1, 1, 1), 0.5f);
+                    float angle = math.radians(localCurrentTime * 10f) + distance * math.PI;
+                    float sineValue = math.sin(angle);
+                    float cosineValue = math.cos(angle);
+
+                    float4 color = new float4(
+                        (sineValue + 1) / 2, // Red channel oscillates between 0 and 1
+                        (cosineValue + 1) / 2, // Green channel oscillates between 0 and 1
+                        (sineValue * cosineValue + 1) / 2, // Blue channel combines sine and cosine
+                        1 // Alpha channel remains 1
+                    );
+
                     pixelColor.Color = color;
+
+                    // Log the color changes for a specific pixel (optional)
+                    if (pixelPosition.Position.x == 250 && pixelPosition.Position.y == 250) // Log for center pixel
+                    {
+                        Debug.Log($"Pixel at (250, 250): {color}");
+                    }
                 }
 
             }).ScheduleParallel();

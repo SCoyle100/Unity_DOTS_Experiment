@@ -12,9 +12,6 @@ public struct PixelPosition : IComponentData
     public int2 Position;
 }
 
-
-
-
 public partial class Pixel_system_entity : SystemBase
 {
     protected override void OnCreate()
@@ -35,7 +32,7 @@ public partial class Pixel_system_entity : SystemBase
                 int index = y * 500 + x;
                 Entity pixelEntity = pixelEntities[index];
                 entityManager.SetComponentData(pixelEntity, new PixelPosition { Position = new int2(x, y) });
-                entityManager.SetComponentData(pixelEntity, new PixelColor { Color = new float4(0, 0, 0, 1) });
+                entityManager.SetComponentData(pixelEntity, new PixelColor { Color = new float4(1, 0, 0, 1) });
             }
         }
 
@@ -44,3 +41,4 @@ public partial class Pixel_system_entity : SystemBase
 
     protected override void OnUpdate() { }
 }
+
